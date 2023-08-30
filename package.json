@@ -1,0 +1,26 @@
+{
+  "name": "zoocommissionerbot",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZooCommissioner/zoocommissionerbot.git"
+  },
+  "author": "Volodymyr Homulko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ZooCommissioner/zoocommissionerbot/issues"
+  },
+  "homepage": "https://github.com/ZooCommissioner/zoocommissionerbot#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "mongoose": "^7.5.0",
+    "telegraf": "^4.12.2",
+    "telegraf-session-mongoose": "^2.0.6"
+  }
+}
