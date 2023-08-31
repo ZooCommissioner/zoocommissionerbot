@@ -95,7 +95,12 @@ bot.on(message('text'), async (ctx) => {
   }
 })
 
-bot.launch();
+bot.launch({
+  webhook: {
+    domain: '0.0.0.0',
+    port: 8080,
+  }
+});
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
