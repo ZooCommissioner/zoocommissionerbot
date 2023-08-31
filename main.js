@@ -67,7 +67,7 @@ bot.hears('Мои заявки',  async (ctx) => {
 });
 
 bot.hears('Поддержка', (ctx) => ctx.reply('По каким-либо вопросам пишите @…'));
-// master
+
 bot.on(message('text'), async (ctx) => {
   const session = await sessionService.findByTelegramId(ctx.from.id);
 
@@ -95,12 +95,7 @@ bot.on(message('text'), async (ctx) => {
   }
 })
 
-bot.launch({
-  webhook: {
-    domain: '0.0.0.0',
-    port: 8080,
-  }
-});
+bot.launch();
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
