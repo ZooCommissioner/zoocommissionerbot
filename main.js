@@ -67,7 +67,7 @@ bot.hears('Мои заявки',  async (ctx) => {
 });
 
 bot.hears('Поддержка', (ctx) => ctx.reply('По каким-либо вопросам пишите @…'));
-
+// master
 bot.on(message('text'), async (ctx) => {
   const session = await sessionService.findByTelegramId(ctx.from.id);
 
