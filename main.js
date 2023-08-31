@@ -4,10 +4,13 @@ import {message} from "telegraf/filters";
 import mongoose from "mongoose";
 import {ApplicationService} from "./application/application.service.js";
 import {SessionService} from "./session/session.service.js";
+import express from "express";
 
 const bot = new Telegraf(process.env.BOT_API_KEY);
 const applicationService = new ApplicationService();
 const sessionService = new SessionService();
+const healthCheckApp = express();
+healthCheckApp.listen(8080, () => console.log('Health check is running...'));
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
