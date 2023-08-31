@@ -2,19 +2,18 @@ import {Markup, Telegraf} from "telegraf";
 import 'dotenv/config'
 import {message} from "telegraf/filters";
 import mongoose from "mongoose";
-import {session} from "telegraf-session-mongoose";
 import {ApplicationService} from "./application/application.service.js";
+import {SessionService} from "./session/session.service.js";
 
 const bot = new Telegraf(process.env.BOT_API_KEY);
 const applicationService = new ApplicationService();
+const sessionService = new SessionService();
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   dbName: 'bot-db',
 }).then(() => console.log('Connected to mongodb...'));
-
-bot.use(session({ sessionName: 'bot-db' }));
 
 const keyboard = Markup.keyboard([
   Markup.button.callback('Оставить заявку', 'paste_application'),
@@ -26,8 +25,10 @@ bot.start((ctx) => {
   ctx.reply('Привет!', keyboard);
 });
 
-bot.hears('Оставить заявку', (ctx) => {
-  if (!ctx.session.name) {
+bot.hears('Оставить заявку', async (ctx) => {
+  const session = await sessionService.findByTelegramId(ctx.from.id);
+
+  if (!session) {
     ctx.reply(
       'Введите имя',
       {
@@ -39,7 +40,7 @@ bot.hears('Оставить заявку', (ctx) => {
     return;
   }
 
-  if (!ctx.session.text) {
+  if (!session.text) {
     ctx.reply(
       'Опишите суть проблемы и отправьте сообщение', {
         reply_markup: {
@@ -50,13 +51,28 @@ bot.hears('Оставить заявку', (ctx) => {
   }
 });
 
-bot.hears('Мои заявки', (ctx) => ctx.reply('my_application'));
+bot.hears('Мои заявки',  async (ctx) => {
+  const applications = await applicationService.findAllByTelegramId(ctx.from.id);
 
-bot.hears('Поддержка', (ctx) => ctx.reply('support'));
+  if (!applications) {
+    ctx.reply('Вы еще не оставляли заявок');
+    return;
+  }
 
-bot.on(message('text'), (ctx) => {
-  if (!ctx.session.name) {
-    ctx.session.name = ctx.message.text;
+  for (const application of applications) {
+    const applicationDate = new Date(application.date).toLocaleString('uk', { timeZone: 'Europe/Kiev'});
+    const text = `Имя: ${application.name} \nДата: ${applicationDate} \n\n ${application.text}`;
+    ctx.reply(text);
+  }
+});
+
+bot.hears('Поддержка', (ctx) => ctx.reply('По каким-либо вопросам пишите @…'));
+
+bot.on(message('text'), async (ctx) => {
+  const session = await sessionService.findByTelegramId(ctx.from.id);
+
+  if (!session) {
+    await sessionService.create(ctx.from.id, ctx.message.text);
     ctx.reply(
       'Опишите суть проблемы и отправьте сообщение', {
         reply_markup: {
@@ -67,15 +83,15 @@ bot.on(message('text'), (ctx) => {
     return;
   }
 
-  if (!ctx.session.text) {
-    ctx.session.text = ctx.message.text;
-    applicationService.pasteApplication(
-      ctx.from.id,
-      ctx.session.name,
-      new Date(ctx.message.date).toLocaleString(),
+  if (!session.text) {
+    applicationService.create(
+      session.telegramId,
+      session.name,
+      new Date(),
       ctx.message.text,
     );
     ctx.reply('Ваша завка принята и будет рассмотрена в ближайшее время', keyboard);
+    await sessionService.deleteByTelegramId(session.telegramId);
   }
 })
 

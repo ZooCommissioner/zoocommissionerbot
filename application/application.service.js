@@ -1,6 +1,12 @@
+import {ApplicationModel} from "./application.schema.js";
+
 export class ApplicationService {
 
-  pasteApplication(telegramId, name, date, text) {
-    console.log('record', { telegramId, name, date: date.toLocaleString(), text })
+  async create(telegramId, name, date, text) {
+    return ApplicationModel.create({ telegramId, name, date, text });
+  }
+
+  async findAllByTelegramId(telegramId) {
+    return ApplicationModel.find({ telegramId })
   }
 }
