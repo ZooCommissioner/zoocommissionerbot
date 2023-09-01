@@ -5,6 +5,15 @@ import mongoose from "mongoose";
 import {ApplicationService} from "./application/application.service.js";
 import {SessionService} from "./session/session.service.js";
 import express from "express";
+import {MY_APPLICATIONS, PASTE_APPLICATION, SUPPORT} from "./constaints/button-names.js";
+import {
+  APPLICATION_REQUEST, APPLICATION_SUBMIT,
+  APPLICATION_TEXT,
+  APPLICATIONS_NOT_FOUND,
+  ENTER_NAME,
+  GREETING,
+  NAME, SUPPORT_TEXT
+} from "./constaints/textes.js";
 
 const bot = new Telegraf(process.env.BOT_API_KEY);
 const applicationService = new ApplicationService();

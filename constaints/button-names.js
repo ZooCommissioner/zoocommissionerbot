@@ -1,3 +1,3 @@
-const PASTE_APPLICATION = 'Залишити заявку✍️';
-const MY_APPLICATIONS = 'Мої заявки📋';
-const SUPPORT = 'Підтримкаℹ️';
+export const PASTE_APPLICATION = 'Залишити заявку✍️';
+export const MY_APPLICATIONS = 'Мої заявки📋';
+export const SUPPORT = 'Підтримкаℹ️';
