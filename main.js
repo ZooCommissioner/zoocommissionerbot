@@ -19,25 +19,25 @@ mongoose.connect(process.env.MONGO_URI, {
 }).then(() => console.log('Connected to mongodb...'));
 
 const keyboard = Markup.keyboard([
-  Markup.button.callback('Оставить заявку', 'paste_application'),
-  Markup.button.callback('Мои заявки', 'my_applications'),
-  Markup.button.callback('Поддержка', 'support'),
+  Markup.button.callback(PASTE_APPLICATION, 'paste_application'),
+  Markup.button.callback(MY_APPLICATIONS, 'my_applications'),
+  Markup.button.callback(SUPPORT, 'support'),
 ]);
 
 bot.start((ctx) => {
-  ctx.reply('Привет!', keyboard);
+  ctx.reply(GREETING, keyboard);
 });
 
-bot.hears('Оставить заявку', async (ctx) => {
+bot.hears(PASTE_APPLICATION, async (ctx) => {
   const session = await sessionService.findByTelegramId(ctx.from.id);
 
   if (!session) {
     ctx.reply(
-      'Введите имя',
+      ENTER_NAME,
       {
       reply_markup: {
         force_reply: true,
-        input_field_placeholder: 'Введите имя',
+        input_field_placeholder: NAME,
       },
     });
     return;
@@ -45,31 +45,31 @@ bot.hears('Оставить заявку', async (ctx) => {
 
   if (!session.text) {
     ctx.reply(
-      'Опишите суть проблемы и отправьте сообщение', {
+      APPLICATION_REQUEST, {
         reply_markup: {
           force_reply: true,
-          input_field_placeholder: 'Опишите суть проблемы и отправьте сообщение',
+          input_field_placeholder: APPLICATION_TEXT,
         },
       });
   }
 });
 
-bot.hears('Мои заявки',  async (ctx) => {
+bot.hears(MY_APPLICATIONS,  async (ctx) => {
   const applications = await applicationService.findAllByTelegramId(ctx.from.id);
 
   if (!applications) {
-    ctx.reply('Вы еще не оставляли заявок');
+    ctx.reply(APPLICATIONS_NOT_FOUND);
     return;
   }
 
   for (const application of applications) {
     const applicationDate = new Date(application.date).toLocaleString('uk', { timeZone: 'Europe/Kiev'});
-    const text = `Имя: ${application.name} \nДата: ${applicationDate} \n\n ${application.text}`;
+    const text = `Ім’я: ${application.name} \nДата: ${applicationDate} \n\n ${application.text}`;
     ctx.reply(text);
   }
 });
 
-bot.hears('Поддержка', (ctx) => ctx.reply('По каким-либо вопросам пишите @…'));
+bot.hears(SUPPORT, (ctx) => ctx.reply(SUPPORT_TEXT));
 
 bot.on(message('text'), async (ctx) => {
   const session = await sessionService.findByTelegramId(ctx.from.id);
@@ -77,10 +77,10 @@ bot.on(message('text'), async (ctx) => {
   if (!session) {
     await sessionService.create(ctx.from.id, ctx.message.text);
     ctx.reply(
-      'Опишите суть проблемы и отправьте сообщение', {
+      APPLICATION_REQUEST, {
         reply_markup: {
           force_reply: true,
-          input_field_placeholder: 'Опишите суть проблемы и отправьте сообщение',
+          input_field_placeholder: APPLICATION_TEXT,
         },
       });
     return;
@@ -93,7 +93,7 @@ bot.on(message('text'), async (ctx) => {
       new Date(),
       ctx.message.text,
     );
-    ctx.reply('Ваша завка принята и будет рассмотрена в ближайшее время', keyboard);
+    ctx.reply(APPLICATION_SUBMIT, keyboard);
     await sessionService.deleteByTelegramId(session.telegramId);
   }
 })
