@@ -73,7 +73,7 @@ bot.hears(MY_APPLICATIONS,  async (ctx) => {
 
   for (const application of applications) {
     const applicationDate = new Date(application.date).toLocaleString('uk', { timeZone: 'Europe/Kiev'});
-    const text = `Ім’я: ${application.name} \nДата: ${applicationDate} \n\n ${application.text}`;
+    const text = `Ім’я: ${application.name} \nДата: ${applicationDate} \n\n ${APPLICATION_TEXT}\n ${application.text}`;
     ctx.reply(text);
   }
 });
