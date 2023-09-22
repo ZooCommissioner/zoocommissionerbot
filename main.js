@@ -10,10 +10,11 @@ import {
   APPLICATION_REQUEST, APPLICATION_SUBMIT,
   APPLICATION_TEXT,
   APPLICATIONS_NOT_FOUND,
-  ENTER_NAME,
+  ENTER_NAME, ENTER_PHONE_NUMBER,
   GREETING,
-  NAME, SUPPORT_TEXT
+  NAME, PHONE_NUMBER, SUPPORT_TEXT
 } from "./constaints/textes.js";
+import {INCORRECT_PHONE_NUMBER} from "./constaints/error-textes.js";
 
 const bot = new Telegraf(process.env.BOT_API_KEY);
 const applicationService = new ApplicationService();
@@ -33,9 +34,7 @@ const keyboard = Markup.keyboard([
   Markup.button.callback(SUPPORT, 'support'),
 ]);
 
-bot.start((ctx) => {
-  ctx.reply(GREETING, keyboard);
-});
+bot.start((ctx) => ctx.reply(GREETING, keyboard));
 
 bot.hears(PASTE_APPLICATION, async (ctx) => {
   const session = await sessionService.findByTelegramId(ctx.from.id);
@@ -86,6 +85,30 @@ bot.on(message('text'), async (ctx) => {
   if (!session) {
     await sessionService.create(ctx.from.id, ctx.message.text);
     ctx.reply(
+      ENTER_PHONE_NUMBER, {
+        reply_markup: {
+          force_reply: true,
+          input_field_placeholder: PHONE_NUMBER,
+        },
+      });
+    return;
+  }
+
+  if (!session.phoneNumber) {
+    if (!sessionService.isValidPhoneNumber(ctx.message.text)) {
+      ctx.reply(
+        INCORRECT_PHONE_NUMBER, {
+          reply_markup: {
+            force_reply: true,
+            input_field_placeholder: PHONE_NUMBER,
+          },
+        });
+      return;
+    }
+
+    await sessionService.update(ctx.from.id, { phoneNumber: ctx.message.text });
+
+    ctx.reply(
       APPLICATION_REQUEST, {
         reply_markup: {
           force_reply: true,
@@ -98,6 +121,8 @@ bot.on(message('text'), async (ctx) => {
   if (!session.text) {
     applicationService.create(
       session.telegramId,
+      ctx.from.username,
+      session.phoneNumber,
       session.name,
       new Date(),
       ctx.message.text,
